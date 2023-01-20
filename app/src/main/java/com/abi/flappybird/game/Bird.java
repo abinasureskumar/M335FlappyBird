@@ -1,50 +1,40 @@
 package com.abi.flappybird.game;
 
-import android.app.Activity;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Point;
 
+import com.abi.flappybird.Constants;
 import com.abi.flappybird.R;
 
-public class Bird {
+public class Bird extends GameObject {
 
-    private int x;
-    private int y;
-    private final Bitmap image;
+    private Bitmap image;
+    private int velocity;
 
-    public Bird(Point displaySize, Activity activity) {
-        image = BitmapFactory.decodeResource(activity.getResources(), R.drawable.bird);
-        x = (displaySize.x - image.getWidth()) / 2;
-        y = (displaySize.y - image.getHeight()) / 2;
+    public Bird(Resources resources) {
+        image = BitmapFactory.decodeResource(resources, R.drawable.bird);
+        width = image.getWidth();
+        height = image.getHeight();
+        x = (Constants.DISPLAY_WIDTH - width) / 2;
+        y = (Constants.DISPLAY_HEIGHT - height) / 2;
     }
 
-    public void draw(Canvas canvas)  {
+    @Override
+    public void onUpdate() {
+        if (y < Constants.DISPLAY_HEIGHT - 300 || velocity < 0) {
+            velocity += Constants.GRAVITY;
+            y += velocity;
+        }
+    }
+
+    @Override
+    public void onDraw(Canvas canvas) {
         canvas.drawBitmap(image, x, y, null);
     }
 
-    public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-
-    public int getWidth() {
-        return image.getWidth();
-    }
-
-    public int getHeight() {
-        return image.getHeight();
+    public void jump() {
+        velocity = -Constants.BIRD_JUMP_VELOCITY;
     }
 }

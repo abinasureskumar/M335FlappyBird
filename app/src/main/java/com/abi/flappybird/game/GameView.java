@@ -1,70 +1,111 @@
 package com.abi.flappybird.game;
 
-import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Point;
-import android.graphics.Rect;
-import android.os.Handler;
-import android.view.Display;
+import android.graphics.Color;
 import android.view.MotionEvent;
-import android.view.View;
+import android.view.SurfaceView;
 
-import com.abi.flappybird.R;
+import com.abi.flappybird.Constants;
+
+import java.util.Random;
+
+public class GameView extends SurfaceView implements Runnable {
+
+    private Thread thread;
+    private boolean isPlaying;
+
+    private Bird bird;
+    private int pipeWidth;
+    private int pipeHeight;
+    private Random random;
 
 
-public class GameView extends View {
+    private Pipe[] topPipes = new Pipe[Constants.NUM_PIPES];
+    private Pipe[] bottomPipes = new Pipe[Constants.NUM_PIPES];
 
-    Handler handler;
-    Runnable runnable;
-    final int UPDATE_MILLIS = 30;
-    Bitmap background;
-    Display display;
-    Point point;
-
-    int displayWidth, displayHeight;
-    Rect displayRect;
-    Bird bird;
-
-    int velocity = 0, gravity = 3;
+    private Pipe pipe1;
+    private Pipe pipe2;
 
     public GameView(Context context) {
         super(context);
 
-        handler = new Handler();
-        runnable = new Runnable() {
-            @Override
-            public void run() {
-                invalidate();
-            }
-        };
+        isPlaying = true;
+        bird = new Bird(getResources());
+        pipeWidth = 150;
+        pipeHeight = 400;
 
 
-        display = ((Activity)getContext()).getWindowManager().getDefaultDisplay();
-        point = new Point();
-        display.getSize(point);
-        displayWidth = point.x;
-        displayHeight = point.y;
-        background = BitmapFactory.decodeResource(getResources(), R.drawable.background);
-        displayRect = new Rect(0, 0, displayWidth, displayHeight);
-        bird = new Bird(point, (Activity)getContext());
+        random = new Random();
+        pipe1 = new Pipe(Constants.DISPLAY_WIDTH + pipeWidth, 0, pipeWidth, random.nextInt(Constants.DISPLAY_HEIGHT - Constants.PIPE_GAP_HEIGHT));
+        pipe2 = new Pipe(Constants.DISPLAY_WIDTH + pipeWidth, pipe1.height + Constants.PIPE_GAP_HEIGHT, pipeWidth, Constants.DISPLAY_HEIGHT - (pipe1.height + Constants.PIPE_GAP_HEIGHT));
+
+        start();
+    }
+
+    public void start() {
+        isPlaying = true;
+        thread = new Thread(this);
+        thread.start();
+    }
+
+    public void stop() {
+        isPlaying = false;
+
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+    public void run() {
+        final long targetFrames = 60;
+        final long framePeriod = 1000 / targetFrames;
+        long lastUpdate = System.currentTimeMillis();
 
-        if (bird.getY() < displayHeight - bird.getHeight() || velocity < 0) {
-            velocity += gravity;
-            bird.setY(bird.getY() + velocity);
+        while (isPlaying) {
+            long currentTime = System.currentTimeMillis();
+
+            if (currentTime - lastUpdate >= framePeriod) {
+                update();
+                lastUpdate = currentTime;
+            }
+
+            draw();
         }
 
-        canvas.drawBitmap(background, null, displayRect, null);
-        bird.draw(canvas);
+        stop();
+    }
 
-        handler.postDelayed(runnable, UPDATE_MILLIS);
+    private void update() {
+        bird.onUpdate();
+        pipe1.onUpdate();
+        pipe2.onUpdate();
+
+        if (pipe1.x + pipeWidth < 0) {
+            pipe1 = new Pipe(Constants.DISPLAY_WIDTH, 0, pipeWidth, random.nextInt(Constants.DISPLAY_HEIGHT - Constants.PIPE_GAP_HEIGHT));
+        }
+
+        if (pipe2.x + pipeWidth < 0) {
+            pipe2 = new Pipe(Constants.DISPLAY_WIDTH, pipe1.height + Constants.PIPE_GAP_HEIGHT, pipeWidth, Constants.DISPLAY_HEIGHT - (pipe1.height + Constants.PIPE_GAP_HEIGHT));
+        }
+    }
+
+    private void draw() {
+        if (!getHolder().getSurface().isValid()) {
+            return;
+        }
+
+        Canvas canvas = getHolder().lockCanvas();
+        canvas.drawColor(Color.BLACK);
+
+        bird.onDraw(canvas);
+        pipe1.onDraw(canvas);
+        pipe2.onDraw(canvas);
+
+        getHolder().unlockCanvasAndPost(canvas);
     }
 
     @Override
@@ -72,7 +113,7 @@ public class GameView extends View {
         int action = event.getAction();
 
         if (action == MotionEvent.ACTION_DOWN) {
-            velocity = -30;
+            bird.jump();
         }
 
         return super.onTouchEvent(event);
