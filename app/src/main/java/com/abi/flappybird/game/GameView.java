@@ -26,11 +26,9 @@ public class GameView extends View {
 
     int displayWidth, displayHeight;
     Rect displayRect;
-
-    Bitmap bird;
+    Bird bird;
 
     int velocity = 0, gravity = 3;
-    int birdX, birdY;
 
     public GameView(Context context) {
         super(context);
@@ -51,24 +49,20 @@ public class GameView extends View {
         displayHeight = point.y;
         background = BitmapFactory.decodeResource(getResources(), R.drawable.background);
         displayRect = new Rect(0, 0, displayWidth, displayHeight);
-
-        bird = BitmapFactory.decodeResource(getResources(), R.drawable.bird);
-        birdX = (displayWidth - bird.getWidth()) / 2;
-        birdY = (displayHeight - bird.getHeight()) / 2;
+        bird = new Bird(point, (Activity)getContext());
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-
-        if (birdY < displayHeight - bird.getHeight() || velocity < 0) {
+        if (bird.getY() < displayHeight - bird.getHeight() || velocity < 0) {
             velocity += gravity;
-            birdY += velocity;
+            bird.setY(bird.getY() + velocity);
         }
 
         canvas.drawBitmap(background, null, displayRect, null);
-        canvas.drawBitmap(bird, birdX, birdY, null);
+        bird.draw(canvas);
 
         handler.postDelayed(runnable, UPDATE_MILLIS);
     }
