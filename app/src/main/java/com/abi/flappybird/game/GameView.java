@@ -6,39 +6,34 @@ import android.graphics.Color;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 
-import com.abi.flappybird.Constants;
+import static com.abi.flappybird.Constants.*;
 
 import java.util.Random;
+
 
 public class GameView extends SurfaceView implements Runnable {
 
     private Thread thread;
     private boolean isPlaying;
 
-    private Bird bird;
-    private int pipeWidth;
-    private int pipeHeight;
-    private Random random;
-
-
-    private Pipe[] topPipes = new Pipe[Constants.NUM_PIPES];
-    private Pipe[] bottomPipes = new Pipe[Constants.NUM_PIPES];
-
-    private Pipe pipe1;
-    private Pipe pipe2;
+    private final Bird bird;
+    private final Random random;
+    private final Pipe[] topPipes = new Pipe[NUM_PIPES];
+    private final Pipe[] bottomPipes = new Pipe[NUM_PIPES];
 
     public GameView(Context context) {
         super(context);
 
         isPlaying = true;
         bird = new Bird(getResources());
-        pipeWidth = 150;
-        pipeHeight = 400;
-
-
         random = new Random();
-        pipe1 = new Pipe(Constants.DISPLAY_WIDTH + pipeWidth, 0, pipeWidth, random.nextInt(Constants.DISPLAY_HEIGHT - Constants.PIPE_GAP_HEIGHT));
-        pipe2 = new Pipe(Constants.DISPLAY_WIDTH + pipeWidth, pipe1.height + Constants.PIPE_GAP_HEIGHT, pipeWidth, Constants.DISPLAY_HEIGHT - (pipe1.height + Constants.PIPE_GAP_HEIGHT));
+
+        for (int i = 0; i < NUM_PIPES; i++) {
+            int x = DISPLAY_WIDTH + PIPE_WIDTH + (i + 1) * PIPE_MIN_DISTANCE;
+            topPipes[i] = new Pipe(x, 0, PIPE_WIDTH, random.nextInt(DISPLAY_HEIGHT - PIPE_GAP_HEIGHT));
+            bottomPipes[i] = new Pipe(x, topPipes[i].height + PIPE_GAP_HEIGHT, PIPE_WIDTH, DISPLAY_HEIGHT - (topPipes[i].height + PIPE_GAP_HEIGHT));
+
+        }
 
         start();
     }
@@ -81,15 +76,16 @@ public class GameView extends SurfaceView implements Runnable {
 
     private void update() {
         bird.onUpdate();
-        pipe1.onUpdate();
-        pipe2.onUpdate();
 
-        if (pipe1.x + pipeWidth < 0) {
-            pipe1 = new Pipe(Constants.DISPLAY_WIDTH, 0, pipeWidth, random.nextInt(Constants.DISPLAY_HEIGHT - Constants.PIPE_GAP_HEIGHT));
-        }
+        for (int i = 0; i < NUM_PIPES; i++) {
+            topPipes[i].onUpdate();
+            bottomPipes[i].onUpdate();
 
-        if (pipe2.x + pipeWidth < 0) {
-            pipe2 = new Pipe(Constants.DISPLAY_WIDTH, pipe1.height + Constants.PIPE_GAP_HEIGHT, pipeWidth, Constants.DISPLAY_HEIGHT - (pipe1.height + Constants.PIPE_GAP_HEIGHT));
+            if (topPipes[i].x + PIPE_WIDTH < 0) {
+                int x = topPipes[(i + NUM_PIPES - 1) % NUM_PIPES].x + PIPE_MIN_DISTANCE + PIPE_WIDTH;
+                topPipes[i] = new Pipe(x, 0, PIPE_WIDTH, random.nextInt(DISPLAY_HEIGHT - PIPE_GAP_HEIGHT));
+                bottomPipes[i] = new Pipe(x, topPipes[i].height + PIPE_GAP_HEIGHT, PIPE_WIDTH, DISPLAY_HEIGHT - (topPipes[i].height + PIPE_GAP_HEIGHT));
+            }
         }
     }
 
@@ -102,8 +98,10 @@ public class GameView extends SurfaceView implements Runnable {
         canvas.drawColor(Color.BLACK);
 
         bird.onDraw(canvas);
-        pipe1.onDraw(canvas);
-        pipe2.onDraw(canvas);
+        for (int i = 0; i < NUM_PIPES; i++) {
+            topPipes[i].onDraw(canvas);
+            bottomPipes[i].onDraw(canvas);
+        }
 
         getHolder().unlockCanvasAndPost(canvas);
     }

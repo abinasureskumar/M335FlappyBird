@@ -9,6 +9,9 @@ public class Constants {
     public static final int GRAVITY = 3;
     public static final int GAME_SPEED = 5;
     public static final int NUM_PIPES = 4;
+    public static final int PIPE_MIN_DISTANCE = 600;
     public static final int PIPE_GAP_HEIGHT = 700;
+    public static final int PIPE_WIDTH = 200;
+    public static final int PIPE_HEIGHT = 400;
     public static final int BIRD_JUMP_VELOCITY = 30;
 }
