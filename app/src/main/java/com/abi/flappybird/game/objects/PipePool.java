@@ -1,14 +1,13 @@
-package com.abi.flappybird.game;
+package com.abi.flappybird.game.objects;
 
-import static com.abi.flappybird.Constants.*;
+import static com.abi.flappybird.utils.Constants.*;
 
-import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 
-import com.abi.flappybird.R;
+import com.abi.flappybird.game.GameObject;
+import com.abi.flappybird.utils.BitmapBank;
 
 import java.util.Random;
 
@@ -18,10 +17,10 @@ public class PipePool extends GameObject {
     private final Rect[] bottomPipes;
     private final Random random;
 
-    private final Bitmap bitmap;
+    private final Bitmap image;
 
-    public PipePool(Resources resources) {
-        bitmap = BitmapFactory.decodeResource(resources, R.drawable.pipe);
+    public PipePool(BitmapBank bitmapBank) {
+        image = bitmapBank.getPipe();
         topPipes = new Rect[NUM_PIPES];
         bottomPipes = new Rect[NUM_PIPES];
         random = new Random();
@@ -69,7 +68,7 @@ public class PipePool extends GameObject {
     }
 
     private void drawPipePair(int index, Canvas canvas) {
-        canvas.drawBitmap(bitmap, null, topPipes[index], null);
-        canvas.drawBitmap(bitmap, null, bottomPipes[index], null);
+        canvas.drawBitmap(image, null, topPipes[index], null);
+        canvas.drawBitmap(image, null, bottomPipes[index], null);
     }
 }

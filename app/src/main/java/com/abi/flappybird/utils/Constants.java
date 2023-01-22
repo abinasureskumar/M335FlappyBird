@@ -1,4 +1,4 @@
-package com.abi.flappybird;
+package com.abi.flappybird.utils;
 
 import android.content.res.Resources;
 import android.graphics.Rect;

@@ -1,0 +1,69 @@
+package com.abi.flappybird.game;
+
+import android.graphics.Canvas;
+import android.view.SurfaceHolder;
+
+public class GameThread extends Thread {
+
+    private final SurfaceHolder surfaceHolder;
+    private final Game game;
+    private boolean isRunning;
+    private boolean isPaused;
+
+    public GameThread(Game game, SurfaceHolder holder) {
+        this.game = game;
+        this.surfaceHolder = holder;
+        this.isRunning = true;
+        this.isPaused = false;
+    }
+
+    public void close() {
+        try {
+            isRunning = false;
+            join();
+        } catch (InterruptedException ignored) {
+        }
+    }
+
+    @Override
+    public void run() {
+
+        final long targetFrames = 60;
+        final long framePeriod = 1000 / targetFrames;
+        long lastUpdate = System.currentTimeMillis();
+
+        while (isRunning) {
+            if (isPaused) {
+                continue;
+            }
+
+            long currentTime = System.currentTimeMillis();
+
+            if (currentTime - lastUpdate >= framePeriod) {
+
+                Canvas canvas = surfaceHolder.lockCanvas(null);
+
+                if (canvas != null) {
+                    synchronized (surfaceHolder) {
+                        game.onUpdate(canvas);
+                    }
+
+                    surfaceHolder.unlockCanvasAndPost(canvas);
+                }
+
+                lastUpdate = currentTime;
+            }
+        }
+
+        close();
+    }
+
+    public void togglePause() {
+        isPaused = !isPaused;
+    }
+
+    public boolean isRunning() {
+        return isRunning;
+    }
+}
+

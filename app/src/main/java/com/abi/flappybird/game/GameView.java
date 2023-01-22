@@ -1,96 +1,60 @@
 package com.abi.flappybird.game;
 
+import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.abi.flappybird.Constants;
-import com.abi.flappybird.R;
+import androidx.annotation.NonNull;
 
-public class GameView extends SurfaceView implements Runnable {
 
-    private Thread thread;
-    private boolean isPlaying;
+public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
-    private final Background background;
-    private final Bird bird;
-    private final PipePool pipePool;
+    private final Game game;
+    private final GameThread thread;
 
-    public GameView(Context context) {
-        super(context);
+    public GameView(Context context, AttributeSet attributes) {
+        super(context, attributes);
 
-        isPlaying = true;
-        background = new Background((getResources());
-        bird = new Bird(getResources());
-        pipePool = new PipePool(getResources());
+        getHolder().addCallback(this);
+        setFocusable(true);
 
-        start();
-    }
-
-    public void start() {
-        isPlaying = true;
-        thread = new Thread(this);
-        thread.start();
-    }
-
-    public void stop() {
-        isPlaying = false;
-
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        game = new Game(context);
+        thread = new GameThread(game, getHolder());
     }
 
     @Override
-    public void run() {
-        final long targetFrames = 60;
-        final long framePeriod = 1000 / targetFrames;
-        long lastUpdate = System.currentTimeMillis();
-
-        while (isPlaying) {
-            long currentTime = System.currentTimeMillis();
-
-            if (currentTime - lastUpdate >= framePeriod) {
-                update();
-                lastUpdate = currentTime;
-            }
-        }
-
-        stop();
+    public void surfaceCreated(@NonNull SurfaceHolder holder) {
+        thread.start();
     }
 
-    private void update() {
-        if (!getHolder().getSurface().isValid()) {
-            return;
+    @Override
+    public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+        if (thread.isRunning()) {
+            thread.close();
         }
-
-        Canvas canvas = getHolder().lockCanvas();
-
-        background.onUpdate(canvas);
-        pipePool.onUpdate(canvas);
-        bird.onUpdate(canvas);
-
-        if (pipePool.intersects(bird.getRect())) {
-            System.out.println("TEST");
-        }
-
-        getHolder().unlockCanvasAndPost(canvas);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
         int action = event.getAction();
 
         if (action == MotionEvent.ACTION_DOWN) {
-            bird.jump();
+            game.onTap();
         }
 
         return super.onTouchEvent(event);
+    }
+
+    public void togglePause() {
+        thread.togglePause();
     }
 }
