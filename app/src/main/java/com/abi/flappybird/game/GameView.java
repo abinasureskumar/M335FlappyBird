@@ -16,17 +16,17 @@ public class GameView extends SurfaceView implements Runnable {
     private Thread thread;
     private boolean isPlaying;
 
+    private final Background background;
     private final Bird bird;
     private final PipePool pipePool;
-    private Bitmap background;
 
     public GameView(Context context) {
         super(context);
 
         isPlaying = true;
+        background = new Background((getResources());
         bird = new Bird(getResources());
         pipePool = new PipePool(getResources());
-        background = BitmapFactory.decodeResource(getResources(), R.drawable.background);
 
         start();
     }
@@ -60,28 +60,25 @@ public class GameView extends SurfaceView implements Runnable {
                 update();
                 lastUpdate = currentTime;
             }
-
-            draw();
         }
 
         stop();
     }
 
     private void update() {
-        bird.onUpdate();
-        pipePool.onUpdate();
-    }
-
-    private void draw() {
         if (!getHolder().getSurface().isValid()) {
             return;
         }
 
         Canvas canvas = getHolder().lockCanvas();
 
-        canvas.drawBitmap(background,null, Constants.DISPLAY_RECT, null);
-        pipePool.onDraw(canvas);
-        bird.onDraw(canvas);
+        background.onUpdate(canvas);
+        pipePool.onUpdate(canvas);
+        bird.onUpdate(canvas);
+
+        if (pipePool.intersects(bird.getRect())) {
+            System.out.println("TEST");
+        }
 
         getHolder().unlockCanvasAndPost(canvas);
     }

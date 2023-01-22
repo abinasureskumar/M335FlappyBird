@@ -2,7 +2,6 @@ package com.abi.flappybird.game;
 
 import static com.abi.flappybird.Constants.*;
 
-import android.annotation.SuppressLint;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -37,30 +36,40 @@ public class PipePool extends GameObject {
     }
 
     @Override
-    public void onUpdate() {
+    public void onUpdate(Canvas canvas) {
         for (int i = 0; i < NUM_PIPES; i++) {
             topPipes[i].offset(-GAME_SPEED, 0);
             bottomPipes[i].offset(-GAME_SPEED, 0);
 
-            if (topPipes[i].right + PIPE_WIDTH < 0) {
-                int x = topPipes[(i + NUM_PIPES - 1) % NUM_PIPES].right + PIPE_MIN_DISTANCE;
-                int y = random.nextInt(DISPLAY_HEIGHT - PIPE_GAP_HEIGHT);
-                topPipes[i].set(x, 0, x + PIPE_WIDTH, y);
-                bottomPipes[i].set(x, y + PIPE_GAP_HEIGHT, x + PIPE_WIDTH, DISPLAY_HEIGHT);
-            }
+            updatePipePair(i);
+            drawPipePair(i, canvas);
         }
     }
 
-    @Override
-    @SuppressLint("DrawAllocation")
-    public void onDraw(Canvas canvas) {
-        bitmap.setDensity(Bitmap.DENSITY_NONE);
+    public boolean intersects(Rect rect) {
         for (int i = 0; i < NUM_PIPES; i++) {
-            Bitmap b1 = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), topPipes[i].height());
-            Bitmap b2 = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bottomPipes[i].height());
-
-            canvas.drawBitmap(b1,null,topPipes[i], null);
-            canvas.drawBitmap(b2, null, bottomPipes[i], null);
+            if (topPipes[i].intersect(rect) || bottomPipes[i].intersect(rect)) {
+                return true;
+            }
         }
+
+        return false;
+    }
+
+    private void updatePipePair(int index) {
+        topPipes[index].offset(-GAME_SPEED, 0);
+        bottomPipes[index].offset(-GAME_SPEED, 0);
+
+        if (topPipes[index].right + PIPE_WIDTH < 0) {
+            int x = topPipes[(index + NUM_PIPES - 1) % NUM_PIPES].right + PIPE_MIN_DISTANCE;
+            int y = random.nextInt(DISPLAY_HEIGHT - PIPE_GAP_HEIGHT);
+            topPipes[index].set(x, 0, x + PIPE_WIDTH, y);
+            bottomPipes[index].set(x, y + PIPE_GAP_HEIGHT, x + PIPE_WIDTH, DISPLAY_HEIGHT);
+        }
+    }
+
+    private void drawPipePair(int index, Canvas canvas) {
+        canvas.drawBitmap(bitmap, null, topPipes[index], null);
+        canvas.drawBitmap(bitmap, null, bottomPipes[index], null);
     }
 }
