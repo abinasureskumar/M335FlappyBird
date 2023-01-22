@@ -13,14 +13,14 @@ import androidx.fragment.app.Fragment;
 import com.abi.flappybird.MainActivity;
 import com.abi.flappybird.R;
 
-public class StartGameFragment extends Fragment {
+public class GameOverFragment extends Fragment {
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        final View rootView = inflater.inflate(R.layout.fragment_start, container, false);
+        final View rootView = inflater.inflate(R.layout.fragment_over, container, false);
 
-        Button playButton = rootView.findViewById(R.id.PlayButton);
+        Button playButton = rootView.findViewById(R.id.PlayAgainButton);
         playButton.setOnClickListener(v -> {
             MainActivity.getInstance().changeFragment(new GameFragment());
         });

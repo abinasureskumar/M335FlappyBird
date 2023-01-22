@@ -3,6 +3,10 @@ package com.abi.flappybird.game;
 import android.graphics.Canvas;
 import android.view.SurfaceHolder;
 
+import com.abi.flappybird.MainActivity;
+import com.abi.flappybird.fragments.GameFragment;
+import com.abi.flappybird.fragments.GameOverFragment;
+
 public class GameThread extends Thread {
 
     private final SurfaceHolder surfaceHolder;
@@ -22,6 +26,7 @@ public class GameThread extends Thread {
             isRunning = false;
             join();
         } catch (InterruptedException ignored) {
+            System.out.println(ignored);
         }
     }
 
@@ -37,6 +42,12 @@ public class GameThread extends Thread {
                 continue;
             }
 
+            if (game.isGameOver()) {
+                isRunning = false;
+                MainActivity.getInstance().changeFragment(new GameOverFragment());
+                break;
+            }
+
             long currentTime = System.currentTimeMillis();
 
             if (currentTime - lastUpdate >= framePeriod) {
@@ -44,10 +55,7 @@ public class GameThread extends Thread {
                 Canvas canvas = surfaceHolder.lockCanvas(null);
 
                 if (canvas != null) {
-                    synchronized (surfaceHolder) {
-                        game.onUpdate(canvas);
-                    }
-
+                    game.onUpdate(canvas);
                     surfaceHolder.unlockCanvasAndPost(canvas);
                 }
 
